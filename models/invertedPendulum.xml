@@ -1,0 +1,88 @@
+<!-- ======================================================
+
+		MODEL: Inverted Pendulum
+		AUTHOR: Atabak Dehban
+		Modifed from the following model
+
+    ======================================================
+	Model 		:: Beam Balance
+
+	Mujoco		:: Advanced physics simulation engine
+		Source		: www.roboti.us
+		Version		: 1.31
+		Released 	: 23Apr16
+
+	Author		:: Vikash Kumar
+		Contacts 	: kumar@roboti.us
+		Last edits 	: 30Apr'16, 30Nov'15, 10Oct'15
+    ======================================================
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+POSSIBILITY OF SUCH DAMAGE.
+-->
+
+
+<mujoco model="inverted pendulum">
+	<compiler 	angle="radian"/>
+			
+	<option	timestep="0.001"
+			iterations="20">
+		<flag sensornoise="enable"/>
+	</option>
+	
+	<default>
+	<geom  rgba="0.45 0.6 0.6 1"/>
+		<site type="sphere" size="0.02"/>
+	</default>
+	<worldbody>
+	
+		<light directional="true" cutoff="4" exponent="20" diffuse="1 1 1" specular="0 0 0" pos=".9 .3 2.5" dir="-.9 -.3 -2.5 "/>
+	
+		<!-- ======= Ground ======= -->
+		<geom name="ground" type="plane" pos="0 0 0" size="0.5 1 2" rgba=" .25 .26 .25 1"/>
+		<site name="rFix" pos="0 -.2 .005"/>
+		<site name="lFix" pos="0 .2 .005"/>
+			
+		<!-- ======= Beam ======= -->
+		<body name="beam" pos="0 0 .5">
+			<!--density of the rod is ten times smaller than other objects (e.g. the ball) for a better point mass approximation-->
+            <geom name="rod" type="cylinder" pos="0 0 0.0" size=".01 .1" density="100"/>
+			<geom pos="0 0 -.1" type="capsule" size=".01 .2" euler="1.57 0 0"/>
+			<joint name="pivot" pos="0 0 -0.1" axis="0 1 0" limited="false" damping=".05"/>
+			<site name="rBeam" pos="0 -.2 -.1"/>
+			<site name="lBeam" pos="0 .2 -.1"/>
+			<body name="ballbody" pos="0 0 0.1">
+				<geom name="ballgeom" type="sphere" size=".05"/>
+			</body>
+		</body>
+	</worldbody>
+	
+	<tendon>
+		<spatial name="lThread" width="0.01">
+			<site site="lBeam"/>
+			<site site="lFix"/>
+		</spatial>
+		
+		<spatial name="rThread"  width="0.01">
+			<site site="rBeam"/>
+			<site site="rFix"/>
+		</spatial>
+	</tendon>
+	
+	<actuator>
+        <motor joint='pivot' name='motor' gear="1" forcelimited="true" forcerange="-10 10"/>
+	</actuator>
+
+	<sensor>
+		<jointpos name="encoder" joint="pivot" noise="0.001"/>
+	</sensor>
+</mujoco>
