@@ -1,9 +1,10 @@
 ## MuJoCo-Tutorials
 Continuousy updated based on my progress on the 2018 edition of underactuated robotics course. You need to place your licence file ```mjkey.txt``` in the root of the repository and copy ```*.so.*``` files from bin of MuJoCo folder to ```libraries```.
 
-Then, assuming you are in the root of the repository:
+Then, assuming you are in the root of the repository and ```$MJPRO``` is your path to the downloaded MuJoCo folder:
 
 ```sh
+$ mkdir libraries && cp $MJPRO/bin/*.so* libraries/ 
 $ mkdir build && cd &_
 $ cmake .. && make
 $ ./src/0_preliminaries/pd
