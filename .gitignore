@@ -1,5 +1,5 @@
 .idea
-*.so.*
+*.so*
 cmake-build-debug
 *mjkey.txt
 libraries
