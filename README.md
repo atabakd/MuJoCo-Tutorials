@@ -5,7 +5,7 @@ Then, assuming you are in the root of the repository and ```$MJPRO``` is your pa
 
 ```sh
 $ mkdir libraries && cp $MJPRO/bin/*.so* libraries/ 
-$ mkdir build && cd &_
+$ mkdir build && cd $_
 $ cmake .. && make
 $ ./src/0_preliminaries/pd
 ```
