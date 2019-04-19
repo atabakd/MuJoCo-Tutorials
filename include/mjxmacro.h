@@ -1,8 +1,7 @@
-//---------------------------------//
-//  This file is part of MuJoCo    //
-//  Written by Emo Todorov         //
-//  Copyright (C) 2017 Roboti LLC  //
-//---------------------------------//
+//--------------------------------//
+//  This file is part MuJoCo      //
+//  Copyright © 2018, Roboti LLC  //
+//--------------------------------//
 
 
 #pragma once
@@ -23,8 +22,6 @@
     X( mjtNum,  o_margin        ) \
     X( int,     integrator      ) \
     X( int,     collision       ) \
-    X( int,     impedance       ) \
-    X( int,     reference       ) \
     X( int,     cone            ) \
     X( int,     jacobian        ) \
     X( int,     solver          ) \
@@ -61,8 +58,15 @@
     X( nlight )             \
     X( nmesh )              \
     X( nmeshvert )          \
+    X( nmeshtexvert )       \
     X( nmeshface )          \
     X( nmeshgraph )         \
+    X( nskin )              \
+    X( nskinvert )          \
+    X( nskintexvert )       \
+    X( nskinface )          \
+    X( nskinbone )          \
+    X( nskinbonevert )      \
     X( nhfield )            \
     X( nhfielddata )        \
     X( ntex )               \
@@ -115,6 +119,8 @@
     X( int,     body_dofadr,             nbody,     1           ) \
     X( int,     body_geomnum,            nbody,     1           ) \
     X( int,     body_geomadr,            nbody,     1           ) \
+    X( mjtByte, body_simple,             nbody,     1           ) \
+    X( mjtByte, body_sameframe,          nbody,     1           ) \
     X( mjtNum,  body_pos,                nbody,     3           ) \
     X( mjtNum,  body_quat,               nbody,     4           ) \
     X( mjtNum,  body_ipos,               nbody,     3           ) \
@@ -128,6 +134,7 @@
     X( int,     jnt_qposadr,             njnt,      1           ) \
     X( int,     jnt_dofadr,              njnt,      1           ) \
     X( int,     jnt_bodyid,              njnt,      1           ) \
+    X( int,     jnt_group,               njnt,      1           ) \
     X( mjtByte, jnt_limited,             njnt,      1           ) \
     X( mjtNum,  jnt_solref,              njnt,      mjNREF      ) \
     X( mjtNum,  jnt_solimp,              njnt,      mjNIMP      ) \
@@ -141,12 +148,14 @@
     X( int,     dof_jntid,               nv,        1           ) \
     X( int,     dof_parentid,            nv,        1           ) \
     X( int,     dof_Madr,                nv,        1           ) \
+    X( int,     dof_simplenum,           nv,        1           ) \
     X( mjtNum,  dof_solref,              nv,        mjNREF      ) \
     X( mjtNum,  dof_solimp,              nv,        mjNIMP      ) \
     X( mjtNum,  dof_frictionloss,        nv,        1           ) \
     X( mjtNum,  dof_armature,            nv,        1           ) \
     X( mjtNum,  dof_damping,             nv,        1           ) \
     X( mjtNum,  dof_invweight0,          nv,        1           ) \
+    X( mjtNum,  dof_M0,                  nv,        1           ) \
     X( int,     geom_type,               ngeom,     1           ) \
     X( int,     geom_contype,            ngeom,     1           ) \
     X( int,     geom_conaffinity,        ngeom,     1           ) \
@@ -155,6 +164,8 @@
     X( int,     geom_dataid,             ngeom,     1           ) \
     X( int,     geom_matid,              ngeom,     1           ) \
     X( int,     geom_group,              ngeom,     1           ) \
+    X( int,     geom_priority,           ngeom,     1           ) \
+    X( mjtByte, geom_sameframe,          ngeom,     1           ) \
     X( mjtNum,  geom_solmix,             ngeom,     1           ) \
     X( mjtNum,  geom_solref,             ngeom,     mjNREF      ) \
     X( mjtNum,  geom_solimp,             ngeom,     mjNIMP      ) \
@@ -171,6 +182,7 @@
     X( int,     site_bodyid,             nsite,     1           ) \
     X( int,     site_matid,              nsite,     1           ) \
     X( int,     site_group,              nsite,     1           ) \
+    X( mjtByte, site_sameframe,          nsite,     1           ) \
     X( mjtNum,  site_size,               nsite,     3           ) \
     X( mjtNum,  site_pos,                nsite,     3           ) \
     X( mjtNum,  site_quat,               nsite,     4           ) \
@@ -204,20 +216,42 @@
     X( float,   light_ambient,           nlight,    3           ) \
     X( float,   light_diffuse,           nlight,    3           ) \
     X( float,   light_specular,          nlight,    3           ) \
-    X( int,     mesh_faceadr,            nmesh,     1           ) \
-    X( int,     mesh_facenum,            nmesh,     1           ) \
     X( int,     mesh_vertadr,            nmesh,     1           ) \
     X( int,     mesh_vertnum,            nmesh,     1           ) \
+    X( int,     mesh_texcoordadr,        nmesh,     1           ) \
+    X( int,     mesh_faceadr,            nmesh,     1           ) \
+    X( int,     mesh_facenum,            nmesh,     1           ) \
     X( int,     mesh_graphadr,           nmesh,     1           ) \
     X( float,   mesh_vert,               nmeshvert, 3           ) \
     X( float,   mesh_normal,             nmeshvert, 3           ) \
+    X( float,   mesh_texcoord,           nmeshtexvert, 2        ) \
     X( int,     mesh_face,               nmeshface, 3           ) \
     X( int,     mesh_graph,              nmeshgraph,1           ) \
+    X( int,     skin_matid,              nskin,     1           ) \
+    X( float,   skin_rgba,               nskin,     4           ) \
+    X( float,   skin_inflate,            nskin,     1           ) \
+    X( int,     skin_vertadr,            nskin,     1           ) \
+    X( int,     skin_vertnum,            nskin,     1           ) \
+    X( int,     skin_texcoordadr,        nskin,     1           ) \
+    X( int,     skin_faceadr,            nskin,     1           ) \
+    X( int,     skin_facenum,            nskin,     1           ) \
+    X( int,     skin_boneadr,            nskin,     1           ) \
+    X( int,     skin_bonenum,            nskin,     1           ) \
+    X( float,   skin_vert,               nskinvert, 3           ) \
+    X( float,   skin_texcoord,           nskintexvert, 2        ) \
+    X( int,     skin_face,               nskinface, 3           ) \
+    X( int,     skin_bonevertadr,        nskinbone, 1           ) \
+    X( int,     skin_bonevertnum,        nskinbone, 1           ) \
+    X( float,   skin_bonebindpos,        nskinbone, 3           ) \
+    X( float,   skin_bonebindquat,       nskinbone, 4           ) \
+    X( int,     skin_bonebodyid,         nskinbone, 1           ) \
+    X( int,     skin_bonevertid,         nskinbonevert, 1       ) \
+    X( float,   skin_bonevertweight,     nskinbonevert, 1       ) \
     X( mjtNum,  hfield_size,             nhfield,   4           ) \
     X( int,     hfield_nrow,             nhfield,   1           ) \
     X( int,     hfield_ncol,             nhfield,   1           ) \
     X( int,     hfield_adr,              nhfield,   1           ) \
-    X( float,   hfield_data,             nhfielddata,1          ) \
+    X( float,   hfield_data,             nhfielddata, 1         ) \
     X( int,     tex_type,                ntex,      1           ) \
     X( int,     tex_height,              ntex,      1           ) \
     X( int,     tex_width,               ntex,      1           ) \
@@ -251,6 +285,7 @@
     X( int,     tendon_adr,              ntendon,   1           ) \
     X( int,     tendon_num,              ntendon,   1           ) \
     X( int,     tendon_matid,            ntendon,   1           ) \
+    X( int,     tendon_group,            ntendon,   1           ) \
     X( mjtByte, tendon_limited,          ntendon,   1           ) \
     X( mjtNum,  tendon_width,            ntendon,   1           ) \
     X( mjtNum,  tendon_solref_lim,       ntendon,   mjNREF      ) \
@@ -275,6 +310,7 @@
     X( int,     actuator_gaintype,       nu,        1           ) \
     X( int,     actuator_biastype,       nu,        1           ) \
     X( int,     actuator_trnid,          nu,        2           ) \
+    X( int,     actuator_group,          nu,        1           ) \
     X( mjtByte, actuator_ctrllimited,    nu,        1           ) \
     X( mjtByte, actuator_forcelimited,   nu,        1           ) \
     X( mjtNum,  actuator_dynprm,         nu,        mjNDYN      ) \
@@ -284,7 +320,7 @@
     X( mjtNum,  actuator_forcerange,     nu,        2           ) \
     X( mjtNum,  actuator_gear,           nu,        6           ) \
     X( mjtNum,  actuator_cranklength,    nu,        1           ) \
-    X( mjtNum,  actuator_invweight0,     nu,        1           ) \
+    X( mjtNum,  actuator_acc0,           nu,        1           ) \
     X( mjtNum,  actuator_length0,        nu,        1           ) \
     X( mjtNum,  actuator_lengthrange,    nu,        2           ) \
     X( mjtNum,  actuator_user,           nu,        nuser_actuator) \
@@ -320,9 +356,12 @@
     X( int,     name_camadr,             ncam,      1           ) \
     X( int,     name_lightadr,           nlight,    1           ) \
     X( int,     name_meshadr,            nmesh,     1           ) \
+    X( int,     name_skinadr,            nskin,     1           ) \
     X( int,     name_hfieldadr,          nhfield,   1           ) \
     X( int,     name_texadr,             ntex,      1           ) \
     X( int,     name_matadr,             nmat,      1           ) \
+    X( int,     name_pairadr,            npair,     1           ) \
+    X( int,     name_excludeadr,         nexclude,  1           ) \
     X( int,     name_eqadr,              neq,       1           ) \
     X( int,     name_tendonadr,          ntendon,   1           ) \
     X( int,     name_actuatoradr,        nu,        1           ) \
@@ -330,6 +369,7 @@
     X( int,     name_numericadr,         nnumeric,  1           ) \
     X( int,     name_textadr,            ntext,     1           ) \
     X( int,     name_tupleadr,           ntuple,    1           ) \
+    X( int,     name_keyadr,             nkey,      1           ) \
     X( char,    names,                   nnames,    1           )
 
 
@@ -341,6 +381,7 @@
     X( mjtNum,  qpos,               nq,         1       ) \
     X( mjtNum,  qvel,               nv,         1       ) \
     X( mjtNum,  act,                na,         1       ) \
+    X( mjtNum,  qacc_warmstart,     nv,         1       ) \
     X( mjtNum,  ctrl,               nu,         1       ) \
     X( mjtNum,  qfrc_applied,       nv,         1       ) \
     X( mjtNum,  xfrc_applied,       nbody,      6       ) \
@@ -370,8 +411,11 @@
     X( mjtNum,  cinert,             nbody,      10      ) \
     X( int,     ten_wrapadr,        ntendon,    1       ) \
     X( int,     ten_wrapnum,        ntendon,    1       ) \
+    X( int,     ten_J_rownnz,       ntendon,    1       ) \
+    X( int,     ten_J_rowadr,       ntendon,    1       ) \
+    X( int,     ten_J_colind,       ntendon,    nv      ) \
     X( mjtNum,  ten_length,         ntendon,    1       ) \
-    X( mjtNum,  ten_moment,         ntendon,    nv      ) \
+    X( mjtNum,  ten_J,              ntendon,    nv      ) \
     X( int,     wrap_obj,           nwrap,      2       ) \
     X( mjtNum,  wrap_xpos,          nwrap,      6       ) \
     X( mjtNum,  actuator_length,    nu,         1       ) \
@@ -386,18 +430,19 @@
     X( int,     efc_id,             njmax,      1       ) \
     X( int,     efc_J_rownnz,       njmax,      1       ) \
     X( int,     efc_J_rowadr,       njmax,      1       ) \
+    X( int,     efc_J_rowsuper,     njmax,      1       ) \
     X( int,     efc_J_colind,       njmax,      nv      ) \
     X( int,     efc_JT_rownnz,      nv,         1       ) \
     X( int,     efc_JT_rowadr,      nv,         1       ) \
+    X( int,     efc_JT_rowsuper,    nv,         1       ) \
     X( int,     efc_JT_colind,      nv,         njmax   ) \
-    X( mjtNum,  efc_solref,         njmax,      mjNREF  ) \
-    X( mjtNum,  efc_solimp,         njmax,      mjNIMP  ) \
-    X( mjtNum,  efc_margin,         njmax,      1       ) \
-    X( mjtNum,  efc_frictionloss,   njmax,      1       ) \
-    X( mjtNum,  efc_pos,            njmax,      1       ) \
     X( mjtNum,  efc_J,              njmax,      nv      ) \
     X( mjtNum,  efc_JT,             nv,         njmax   ) \
+    X( mjtNum,  efc_pos,            njmax,      1       ) \
+    X( mjtNum,  efc_margin,         njmax,      1       ) \
+    X( mjtNum,  efc_frictionloss,   njmax,      1       ) \
     X( mjtNum,  efc_diagApprox,     njmax,      1       ) \
+    X( mjtNum,  efc_KBIP,           njmax,      4       ) \
     X( mjtNum,  efc_D,              njmax,      1       ) \
     X( mjtNum,  efc_R,              njmax,      1       ) \
     X( int,     efc_AR_rownnz,      njmax,      1       ) \
@@ -422,7 +467,6 @@
     X( mjtNum,  efc_force,          njmax,      1       ) \
     X( int,     efc_state,          njmax,      1       ) \
     X( mjtNum,  qfrc_constraint,    nv,         1       ) \
-    X( mjtNum,  qacc_warmstart,     nv,         1       ) \
     X( mjtNum,  qfrc_inverse,       nv,         1       ) \
     X( mjtNum,  cacc,               nbody,      6       ) \
     X( mjtNum,  cfrc_int,           nbody,      6       ) \
@@ -438,7 +482,7 @@
     X( int,       maxuse_con   ) \
     X( int,       maxuse_efc   ) \
     X( int,       solver_iter  ) \
-    X( int,       solver_Hnnz  ) \
+    X( int,       solver_nnz   ) \
     X( int,       ne           ) \
     X( int,       nf           ) \
     X( int,       nefc         ) \

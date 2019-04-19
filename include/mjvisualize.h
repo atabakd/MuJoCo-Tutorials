@@ -1,18 +1,17 @@
-//---------------------------------//
-//  This file is part of MuJoCo    //
-//  Written by Emo Todorov         //
-//  Copyright (C) 2017 Roboti LLC  //
-//---------------------------------//
+//--------------------------------//
+//  This file is part MuJoCo      //
+//  Copyright © 2018, Roboti LLC  //
+//--------------------------------//
 
 
 #pragma once
 
 
-#define mjNGROUP        5           // number of geom and site groups with visflags
+#define mjNGROUP        6           // number of geom, site, joint groups with visflags
 #define mjMAXOVERLAY    500         // maximum number of characters in overlay text
 #define mjMAXLINE       100         // maximum number of lines per plot
-#define mjMAXLINEPNT    500         // maximum number points per line
-#define mjMAXPLANEGRID  100         // maximum number of grid points for plane rendering
+#define mjMAXLINEPNT    1000        // maximum number points per line
+#define mjMAXPLANEGRID  200         // maximum number of grid divisions for plane
 
 
 typedef enum _mjtCatBit             // bitflags for mjvGeom category
@@ -64,6 +63,7 @@ typedef enum _mjtLabel              // object labeling
     mjLABEL_TENDON,                 // tendon labels
     mjLABEL_ACTUATOR,               // actuator labels
     mjLABEL_CONSTRAINT,             // constraint labels
+    mjLABEL_SKIN,                   // skin labels
     mjLABEL_SELECTION,              // selected object
     mjLABEL_SELPNT,                 // coordinates of selection point
     mjLABEL_CONTACTFORCE,           // magnitude of contact force
@@ -94,8 +94,11 @@ typedef enum _mjtVisFlag            // flags enabling model element visualizatio
     mjVIS_ACTUATOR,                 // actuators
     mjVIS_CAMERA,                   // cameras
     mjVIS_LIGHT,                    // lights
+    mjVIS_TENDON,                   // tendons
+    mjVIS_RANGEFINDER,              // rangefinder sensors
     mjVIS_CONSTRAINT,               // point constraints
     mjVIS_INERTIA,                  // equivalent inertia boxes
+    mjVIS_SCLINERTIA,               // scale equivalent inertia boxes with mass
     mjVIS_PERTFORCE,                // perturbation force
     mjVIS_PERTOBJ,                  // perturbation object
     mjVIS_CONTACTPOINT,             // contact points
@@ -106,6 +109,7 @@ typedef enum _mjtVisFlag            // flags enabling model element visualizatio
     mjVIS_COM,                      // center of mass
     mjVIS_SELECT,                   // selection point
     mjVIS_STATIC,                   // static bodies
+    mjVIS_SKIN,                     // skin
 
     mjNVISFLAG                      // number of visualization flags
 } mjtVisFlag;
@@ -116,8 +120,12 @@ typedef enum _mjtRndFlag            // flags enabling rendering effects
     mjRND_SHADOW        = 0,        // shadows
     mjRND_WIREFRAME,                // wireframe
     mjRND_REFLECTION,               // reflections
-    mjRND_FOG,                      // fog
+    mjRND_ADDITIVE,                 // additive transparency
     mjRND_SKYBOX,                   // skybox
+    mjRND_FOG,                      // fog
+    mjRND_HAZE,                     // haze
+    mjRND_SEGMENT,                  // segmentation with random color
+    mjRND_IDCOLOR,                  // segmentation with segid color
 
     mjNRNDFLAG                      // number of rendering flags
 } mjtRndFlag;
@@ -134,6 +142,7 @@ typedef enum _mjtStereo             // type of stereo rendering
 struct _mjvPerturb                  // object selection and perturbation
 {
     int      select;                // selected body id; non-positive: none
+    int      skinselect;            // selected skin id; non-positive: none
     int      active;                // perturbation bitmask (mjtPertBit)
     mjtNum   refpos[3];             // desired position for selected object
     mjtNum   refquat[4];            // desired orientation for selected object
@@ -186,6 +195,8 @@ struct _mjvGeom                     // abstract geom
     int      category;              // visual category
     int      texid;                 // texture id; -1: no texture
     int      texuniform;            // uniform cube mapping
+    int      texcoord;              // mesh geom has texture coordinates
+    int      segid;                 // segmentation id; -1: not shown
 
     // OpenGL info
     float    texrepeat[2];          // texture repetition for 2D mapping
@@ -230,6 +241,9 @@ struct _mjvOption                   // abstract visualization options
     int      frame;                 // which frame to show (mjtFrame)
     mjtByte  geomgroup[mjNGROUP];   // geom visualization by group
     mjtByte  sitegroup[mjNGROUP];   // site visualization by group
+    mjtByte  jointgroup[mjNGROUP];  // joint visualization by group
+    mjtByte  tendongroup[mjNGROUP];    // tendon visualization by group
+    mjtByte  actuatorgroup[mjNGROUP];  // actuator visualization by group
     mjtByte  flags[mjNVISFLAG];     // visualization flags (indexed by mjtVisFlag)
 };
 typedef struct _mjvOption mjvOption;
@@ -242,6 +256,14 @@ struct _mjvScene                    // abstract scene passed to OpenGL renderer
     int      ngeom;                 // number of geoms currently in buffer
     mjvGeom* geoms;                 // buffer for geoms
     int*     geomorder;             // buffer for ordering geoms by distance to camera
+
+    // skin data
+    int      nskin;                 // number of skins
+    int*     skinfacenum;           // number of faces in skin
+    int*     skinvertadr;           // address of skin vertices
+    int*     skinvertnum;           // number of vertices in skin
+    float*   skinvert;              // skin vertex data
+    float*   skinnormal;            // skin normal data
 
     // OpenGL lights
     int      nlight;                // number of lights currently in buffer
@@ -270,12 +292,18 @@ struct _mjvFigure                   // abstract 2D figure passed to OpenGL rende
     int     flg_ticklabel[2];       // show grid tick labels (x,y)
     int     flg_extend;             // automatically extend axis ranges to fit data
     int     flg_barplot;            // isolated line segments (i.e. GL_LINES)
+    int     flg_selection;          // vertical selection line
+    int     flg_symmetric;          // symmetric y-axis
 
     // figure options
+    int     legendoff;              // number of lines to offset legend
     int     gridsize[2];            // number of grid points in (x,y)
+    int     selection;              // selection line x-value
+    int     highlight[2];           // if point is in legend rect, highlight line
     float   gridrgb[3];             // grid line rgb
     float   gridwidth;              // grid line width
     float   figurergba[4];          // figure color and alpha
+    float   panergba[4];            // pane color and alpha
     float   legendrgba[4];          // legend color and alpha
     float   textrgb[3];             // text color
     float   range[2][2];            // axis ranges; (min>=max) automatic
@@ -291,5 +319,11 @@ struct _mjvFigure                   // abstract 2D figure passed to OpenGL rende
     float   linewidth[mjMAXLINE];                 // line width
     float   linedata[mjMAXLINE][2*mjMAXLINEPNT];  // line data (x,y)
     char    linename[mjMAXLINE][100];             // line name for legend
+
+    // output from renderer
+    int     xaxispixel[2];          // range of x-axis in pixels
+    int     yaxispixel[2];          // range of y-axis in pixels
+    float   xaxisdata[2];           // range of x-axis in data units
+    float   yaxisdata[2];           // range of y-axis in data units
 };
 typedef struct _mjvFigure mjvFigure;

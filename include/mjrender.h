@@ -1,11 +1,14 @@
-//---------------------------------//
-//  This file is part of MuJoCo    //
-//  Written by Emo Todorov         //
-//  Copyright (C) 2017 Roboti LLC  //
-//---------------------------------//
+//--------------------------------//
+//  This file is part MuJoCo      //
+//  Copyright © 2018, Roboti LLC  //
+//--------------------------------//
 
 
 #pragma once
+
+
+#define mjNAUX          10          // number of auxiliary buffers
+#define mjMAXTEXTURE    1000        // maximum number of textures
 
 
 typedef enum _mjtGridPos            // grid position for overlay
@@ -26,9 +29,12 @@ typedef enum _mjtFramebuffer        // OpenGL framebuffer option
 
 typedef enum _mjtFontScale          // font scale, used at context creation
 {
+    mjFONTSCALE_50      = 50,       // 50% scale, suitable for low-res rendering
     mjFONTSCALE_100     = 100,      // normal scale, suitable in the absence of DPI scaling
     mjFONTSCALE_150     = 150,      // 150% scale
-    mjFONTSCALE_200     = 200       // 200% scale
+    mjFONTSCALE_200     = 200,      // 200% scale
+    mjFONTSCALE_250     = 250,      // 250% scale
+    mjFONTSCALE_300     = 300       // 300% scale
 } mjtFontScale;
 
 
@@ -56,10 +62,19 @@ struct _mjrContext                  // custom OpenGL context
     float lineWidth;                // line width for wireframe rendering
     float shadowClip;               // clipping radius for directional lights
     float shadowScale;              // fraction of light cutoff for spot lights
+    float fogStart;                 // fog start = stat.extent * vis.map.fogstart
+    float fogEnd;                   // fog end = stat.extent * vis.map.fogend
+    float fogRGBA[4];               // fog rgba
     int shadowSize;                 // size of shadow map texture
     int offWidth;                   // width of offscreen buffer
     int offHeight;                  // height of offscreen buffer
     int offSamples;                 // number of offscreen buffer multisamples
+
+    // parameters specified at creation
+    int fontScale;                  // font scale
+    int auxWidth[mjNAUX];           // auxiliary buffer width
+    int auxHeight[mjNAUX];          // auxiliary buffer height
+    int auxSamples[mjNAUX];         // auxiliary buffer multisamples
 
     // offscreen rendering objects
     unsigned int offFBO;            // offscreen framebuffer object
@@ -72,6 +87,12 @@ struct _mjrContext                  // custom OpenGL context
     // shadow rendering objects
     unsigned int shadowFBO;         // shadow map framebuffer object
     unsigned int shadowTex;         // shadow map texture
+
+    // auxiliary buffers
+    unsigned int auxFBO[mjNAUX];    // auxiliary framebuffer object
+    unsigned int auxFBO_r[mjNAUX];  // auxiliary framebuffer object for resolving
+    unsigned int auxColor[mjNAUX];  // auxiliary color buffer
+    unsigned int auxColor_r[mjNAUX];// auxiliary color buffer for resolving
 
     // texture objects and info
     int ntexture;                   // number of allocated textures
@@ -94,6 +115,13 @@ struct _mjrContext                  // custom OpenGL context
     int     rangeBuiltin;           // all builtin geoms, with quality from model
     int     rangeFont;              // all characters in font
 
+    // skin VBOs
+    int      nskin;                 // number of skins
+    unsigned int* skinvertVBO;      // skin vertex position VBOs
+    unsigned int* skinnormalVBO;    // skin vertex normal VBOs
+    unsigned int* skintexcoordVBO;  // skin vertex texture coordinate VBOs
+    unsigned int* skinfaceVBO;      // skin face index VBOs
+
     // character info
     int     charWidth[127];         // character widths: normal and shadow
     int     charWidthBig[127];      // chacarter widths: big
@@ -107,8 +135,7 @@ struct _mjrContext                  // custom OpenGL context
     int     windowStereo;           // is stereo available for default/window framebuffer
     int     windowDoublebuffer;     // is default/window framebuffer double buffered
 
-    // only field that changes after mjr_makeContext
+    // framebuffer
     int     currentBuffer;          // currently active framebuffer: mjFB_WINDOW or mjFB_OFFSCREEN
 };
 typedef struct _mjrContext mjrContext;
-

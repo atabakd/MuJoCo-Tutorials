@@ -1,8 +1,7 @@
-//---------------------------------//
-//  This file is part of MuJoCo    //
-//  Written by Emo Todorov         //
-//  Copyright (C) 2017 Roboti LLC  //
-//---------------------------------//
+//--------------------------------//
+//  This file is part MuJoCo      //
+//  Copyright © 2018, Roboti LLC  //
+//--------------------------------//
 
 
 #pragma once
@@ -66,7 +65,7 @@ struct _mjContact                   // result of collision detection functions
     mjtNum solimp[mjNIMP];          // constraint solver impedance
 
     // internal storage used by solver
-    mjtNum mu;                      // friction of regularized cone, set by mj_makeR
+    mjtNum mu;                      // friction of regularized cone, set by mj_makeConstraint
     mjtNum H[36];                   // cone Hessian, set by mj_updateConstraint
 
     // contact descriptors set by mj_collideGeoms
@@ -75,10 +74,10 @@ struct _mjContact                   // result of collision detection functions
     int geom2;                      // id of geom 2
 
     // flag set by mj_fuseContact or mj_instantianteEquality
-    int exclude;                    // 0: include, 1: in gap, 2: fused, 3: equality
+    int exclude;                    // 0: include, 1: in gap, 2: fused, 3: equality, 4: no dofs
 
     // address computed by mj_instantiateContact
-    int efc_address;                // address in efc; -1: not included, -2-i: distance constraint i ???
+    int efc_address;                // address in efc; -1: not included, -2-i: distance constraint i
 };
 typedef struct _mjContact mjContact;
 
@@ -160,6 +159,7 @@ struct _mjData
     mjtNum*   qpos;                 // position                                 (nq x 1)
     mjtNum*   qvel;                 // velocity                                 (nv x 1)
     mjtNum*   act;                  // actuator activation                      (na x 1)
+    mjtNum*   qacc_warmstart;       // acceleration used for warmstart          (nv x 1)
 
     // control
     mjtNum*   ctrl;                 // control                                  (nu x 1)
@@ -207,14 +207,17 @@ struct _mjData
     // computed by mj_fwdPosition/mj_tendon
     int*      ten_wrapadr;          // start address of tendon's path           (ntendon x 1)
     int*      ten_wrapnum;          // number of wrap points in path            (ntendon x 1)
+    int*      ten_J_rownnz;         // number of non-zeros in Jacobian row      (ntendon x 1)
+    int*      ten_J_rowadr;         // row start address in colind array        (ntendon x 1)
+    int*      ten_J_colind;         // column indices in sparse Jacobian        (ntendon x nv)
     mjtNum*   ten_length;           // tendon lengths                           (ntendon x 1)
-    mjtNum*   ten_moment;           // tendon moment arms                       (ntendon x nv)
+    mjtNum*   ten_J;                // tendon Jacobian                          (ntendon x nv)
     int*      wrap_obj;             // geom id; -1: site; -2: pulley            (nwrap*2 x 1)
     mjtNum*   wrap_xpos;            // Cartesian 3D points in all path          (nwrap*2 x 3)
 
     // computed by mj_fwdPosition/mj_transmission
     mjtNum*   actuator_length;      // actuator lengths                         (nu x 1)
-    mjtNum*   actuator_moment;      // actuator moment arms                     (nu x nv)
+    mjtNum*   actuator_moment;      // actuator moments                         (nu x nv)
 
     // computed by mj_fwdPosition/mj_crb
     mjtNum*   crb;                  // com-based composite inertia and mass     (nbody x 10)
@@ -233,18 +236,19 @@ struct _mjData
     int*      efc_id;               // id of object of specified type           (njmax x 1)
     int*      efc_J_rownnz;         // number of non-zeros in Jacobian row      (njmax x 1)
     int*      efc_J_rowadr;         // row start address in colind array        (njmax x 1)
-    int*      efc_J_colind;         // column indices in sparse Jacobian        (njmax x nv)
-    int*      efc_JT_rownnz;        // number of non-zeros in Jacobian row  T   (nv x 1)
-    int*      efc_JT_rowadr;        // row start address in colind array    T   (nv x 1)
-    int*      efc_JT_colind;        // column indices in sparse Jacobian    T   (nv x njmax)
-    mjtNum*   efc_solref;           // constraint solver reference              (njmax x mjNREF)
-    mjtNum*   efc_solimp;           // constraint solver impedance              (njmax x mjNIMP)
+    int*      efc_J_rowsuper;       // number of subsequent rows in supernode   (njmax x 1)
+    int*      efc_J_colind;         // column indices in Jacobian               (njmax x nv)
+    int*      efc_JT_rownnz;        // number of non-zeros in Jacobian row    T (nv x 1)
+    int*      efc_JT_rowadr;        // row start address in colind array      T (nv x 1)
+    int*      efc_JT_rowsuper;      // number of subsequent rows in supernode T (nv x 1)
+    int*      efc_JT_colind;        // column indices in Jacobian             T (nv x njmax)
+    mjtNum*   efc_J;                // constraint Jacobian                      (njmax x nv)
+    mjtNum*   efc_JT;               // constraint Jacobian transposed           (nv x njmax)
+    mjtNum*   efc_pos;              // constraint position (equality, contact)  (njmax x 1)
     mjtNum*   efc_margin;           // inclusion margin (contact)               (njmax x 1)
     mjtNum*   efc_frictionloss;     // frictionloss (friction)                  (njmax x 1)
-    mjtNum*   efc_pos;              // constraint position (equality, contact)  (njmax x 1)
-    mjtNum*   efc_J;                // constraint Jacobian                      (njmax x nv)
-    mjtNum*   efc_JT;               // sparse constraint Jacobian transposed    (nv x njmax)
     mjtNum*   efc_diagApprox;       // approximation to diagonal of A           (njmax x 1)
+    mjtNum*   efc_KBIP;             // stiffness, damping, impedance, imp'      (njmax x 4)
     mjtNum*   efc_D;                // constraint mass                          (njmax x 1)
     mjtNum*   efc_R;                // inverse constraint mass                  (njmax x 1)
 
@@ -274,7 +278,7 @@ struct _mjData
     mjtNum*   efc_vel;              // velocity in constraint space: J*qvel     (njmax x 1)
     mjtNum*   efc_aref;             // reference pseudo-acceleration            (njmax x 1)
 
-    // computed by mj_sensorVel
+    // computed by mj_sensorVel/mj_subtreeVel if needed
     mjtNum*   subtree_linvel;       // linear velocity of subtree com           (nbody x 3)
     mjtNum*   subtree_angmom;       // angular momentum about subtree com       (nbody x 3)
 
@@ -293,13 +297,12 @@ struct _mjData
     mjtNum*   efc_force;            // constraint force in constraint space     (njmax x 1)
     int*      efc_state;            // constraint state (mjtConstraintState)    (njmax x 1)
     mjtNum*   qfrc_constraint;      // constraint force                         (nv x 1)
-    mjtNum*   qacc_warmstart;       // acceleration used for warmstart          (nv x 1)
 
     // computed by mj_inverse
     mjtNum*   qfrc_inverse;         // net external force; should equal:        (nv x 1)
                                     //  qfrc_applied + J'*xfrc_applied + qfrc_actuator 
 
-    // computed by mj_sensorAcc/mj_rnePostConstraint; rotation:translation format
+    // computed by mj_sensorAcc/mj_rnePostConstraint if needed; rotation:translation format
     mjtNum*   cacc;                 // com-based acceleration                   (nbody x 6)
     mjtNum*   cfrc_int;             // com-based interaction force with parent  (nbody x 6)
     mjtNum*   cfrc_ext;             // com-based external force on body         (nbody x 6)
@@ -323,14 +326,6 @@ typedef mjtNum (*mjfTime)(void);
 
 // actuator dynamics, gain, bias
 typedef mjtNum (*mjfAct)(const mjModel* m, const mjData* d, int id);
-
-// solver impedance
-typedef mjtNum (*mjfSolImp)(const mjModel* m, const mjData* d, int id, 
-                            mjtNum distance, mjtNum* constimp);
-
-// solver reference
-typedef void (*mjfSolRef)(const mjModel* m, const mjData* d, int id,
-                          mjtNum constimp, mjtNum imp, int dim, mjtNum* ref);
 
 // collision detection
 typedef int (*mjfCollision)(const mjModel* m, const mjData* d, 
