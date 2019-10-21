@@ -1,0 +1,89 @@
+<!-- ======================================================
+
+		MODEL: Inverted Pendulum
+		AUTHOR: Atabak Dehban
+		Modifed from the following model
+
+    ======================================================
+	Model 		:: Beam Balance
+
+	Mujoco		:: Advanced physics simulation engine
+		Source		: www.roboti.us
+		Version		: 1.31
+		Released 	: 23Apr16
+
+	Author		:: Vikash Kumar
+		Contacts 	: kumar@roboti.us
+		Last edits 	: 30Apr'16, 30Nov'15, 10Oct'15
+    ======================================================
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+POSSIBILITY OF SUCH DAMAGE.
+
+-->
+
+
+<mujoco model="inverted pendulum">
+	<compiler 	angle="radian"/>
+
+	<option	timestep="0.0001"
+			   iterations="20"
+			   gravity="0 0 -9.81"
+			   integrator="RK4">
+		<flag sensornoise="disable"/>
+	</option>
+	
+	<default>
+		<geom  rgba="0.45 0.6 0.6 1"/>
+		<site type="sphere" size="0.02"/>
+	</default>
+	<worldbody>
+	
+		<light directional="true" cutoff="4" exponent="20" diffuse="1 1 1" specular="0 0 0" pos=".9 .3 2.5" dir="-.9 -.3 -2.5 "/>
+	
+		<!-- ======= Ground ======= -->
+		<geom name="ground" type="plane" pos="0 0 0" size="0.5 1 2" rgba=" .25 .26 .25 1" contype="0" conaffinity="0"/>
+		<site name="rFix" pos="0 -.2 .005"/>
+		<site name="lFix" pos="0 .2 .005"/>
+			
+		<!-- ======= Beam ======= -->
+		<body name="rod1body" pos="0 0 0.5">
+			<geom name="rod1geom" type="cylinder" pos="0.5 0 0" size=".01 0.5" mass="1" euler="0 1.57 0"/>
+			<geom pos="0 0 0" type="capsule" size=".01 .2" euler="1.57 0 0"/>
+			<joint name="passive" pos="0 0 0.0" axis="0 -1 0" limited="false"/>
+			<site name="rBeam" pos="0 -.2 0"/>
+			<site name="lBeam" pos="0 .2 0"/>
+			<body name="rod2body">
+				<geom name="rod2geom" type="cylinder" pos="2 0 0" size=".01 1" mass="1" euler="0 1.57 0" rgba=" .75 .76 .75 1"/>
+				<joint name="active" pos="1 0 0" axis="0 -1 0" limited="false"/>
+			</body>
+		</body>
+	</worldbody>
+	
+	<tendon>
+		<spatial name="lThread" width="0.01">
+			<site site="lBeam"/>
+			<site site="lFix"/>
+		</spatial>
+		
+		<spatial name="rThread"  width="0.01">
+			<site site="rBeam"/>
+			<site site="rFix"/>
+		</spatial>
+
+	</tendon>
+	
+	<actuator>
+		<motor joint='active' name='motor' forcelimited="false"/>
+	</actuator>
+
+</mujoco>
