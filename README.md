@@ -1,5 +1,5 @@
 ## MuJoCo-Tutorials
-Continuousy updated based on my progress on the 2018/9 edition of underactuated robotics course. You need to place your licence file ```mjkey.txt``` in the root of the repository and copy ```*.so.*``` files and ```libglfw3.a```from bin of MuJoCo 2.0 folder to ```libraries```.
+Continuousy updated in [my blog](https://atabakd.github.io/blog/) based on my progress on the 2018/9 edition of underactuated robotics course. You need to place your licence file ```mjkey.txt``` in the root of the repository and copy ```*.so.*``` files and ```libglfw3.a```from bin of MuJoCo 2.0 folder to ```libraries```.
 
 Then, assuming you are in the root of the repository and ```$MJPRO``` is your path to the downloaded MuJoCo folder:
 
